@@ -1,0 +1,25 @@
+:root {
+  --color-paper: #f5f7fa;
+  --color-surface: #fff;
+  --color-ink: #242c3b;
+  --color-muted: #68758a;
+  --color-rule: #e1e6ed;
+  --color-soft: #f5f7fa;
+  --color-accent: #2859d8;
+  --color-tint: #edf2ff;
+  --color-error: #b32638;
+  --color-on-accent: #fff;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+    sans-serif;
+  --font-display: var(--font-body);
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --radius-control: 6px;
+}
+:root {
+  --color-overlay: rgb(20 30 50 / 0.3);
+  --color-shadow: rgb(20 30 50 / 0.06);
+}

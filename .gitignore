@@ -34,3 +34,18 @@ yarn-error.log*
 
 # turbo
 .turbo
+
+# Generated editor packages and verification artifacts
+packages/editor-core/dist/
+packages/editor-react/dist/
+apps/vanilla/dist/
+test-results/
+playwright-report/
+*.tsbuildinfo
+*.tgz
+
+# Generated from docs/extensions.md during package builds
+packages/editor-*/GUIDE.md
+
+# Local npm credentials
+.npmrc

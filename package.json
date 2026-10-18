@@ -3,17 +3,28 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "build": "node scripts/sync-package-guides.mjs && turbo build",
+    "dev": "npm run build:packages && turbo dev",
+    "lint": "eslint packages/editor-core/src packages/editor-react/src packages/editor-form/src apps/docs/app apps/docs/src/studio apps/web/src/pages/index.tsx --ext .ts,.tsx --no-eslintrc --config .eslintrc.cjs --max-warnings 0",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "build:packages": "node scripts/sync-package-guides.mjs && npm run build --workspace=cms-editor-core && npm run build --workspace=cms-editor-react && npm run build --workspace=cms-editor-form",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "typecheck": "npm run typecheck --workspace=cms-editor-core && npm run typecheck --workspace=cms-editor-react && npm run typecheck --workspace=cms-editor-form && npm run typecheck --workspace=docs && npm run typecheck --workspace=web",
+    "test:packages": "npm run build:packages && node scripts/verify-packages.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^22.20.5",
+    "jsdom": "^26.1.0",
     "prettier": "^3.2.5",
-    "turbo": "^2.2.3"
+    "tsup": "^8.5.0",
+    "turbo": "^2.2.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.12.0"
   },
   "packageManager": "npm@10.8.2",
   "workspaces": [

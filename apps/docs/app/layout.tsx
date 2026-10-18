@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import "../../../tokens.css";
+import "cms-editor-core/style.css";
+import "cms-editor-form/style.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "클라이밍 정보 아카이브",
-  description: "클라이밍 관련 정보를 모으고 있습니다.",
+  title: "Blockroom — 문서와 폼을 만드는 공간",
+  description: "블록을 추가해서 문서와 폼을 만들고 어디서든 사용하세요.",
 };
 
 export default function RootLayout({

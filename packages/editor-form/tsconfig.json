@@ -1,0 +1,1 @@
+{"extends":"../editor-core/tsconfig.json","compilerOptions":{"jsx":"react-jsx"},"include":["src"]}
