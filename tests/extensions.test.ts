@@ -11,6 +11,7 @@ import {
 } from "../packages/editor-core/src/index";
 import { getBlockChoices } from "../packages/editor-core/src/editor";
 import { FormKit, formTemplate } from "../packages/editor-form/src/index";
+import { NoticeCard } from "../apps/docs/app/examples/custom-blocks/notice-card";
 const Notice: BlockExtension = {
   name: "notice",
   label: "알림",
@@ -84,5 +85,44 @@ describe("optional extension kits", () => {
     });
     expect(html).toContain("data-cms-answer");
     expect(html).toContain('data-custom="true"');
+  });
+});
+
+describe("consumer demo notice card", () => {
+  const extensions = [NoticeCard];
+
+  it("round-trips stored content and escapes the title and body in server HTML", () => {
+    const document = createDocument("Workshop", [
+      {
+        type: NoticeCard.name,
+        attrs: {
+          id: "notice-1",
+          title: 'A "quoted" title',
+          message: "<script>alert(1)</script> & details",
+        },
+      },
+    ]);
+    const restored = parseDocument(JSON.stringify(document), extensions);
+
+    expect(restored).toEqual(document);
+    const html = renderHTML(restored, { extensions });
+    expect(html).toContain('data-notice-card=""');
+    expect(html).toContain('data-title="A &quot;quoted&quot; title"');
+    expect(html).toContain("<strong>A &quot;quoted&quot; title</strong>");
+    expect(html).toContain(
+      "<p>&lt;script&gt;alert(1)&lt;/script&gt; &amp; details</p>",
+    );
+    expect(html).not.toContain("<script>");
+  });
+
+  it.each([
+    { title: "  ", message: "Details" },
+    { title: "Workshop", message: 42 },
+  ])("rejects invalid notice attributes", (attrs) => {
+    const document = createDocument("Workshop", [
+      { type: NoticeCard.name, attrs: { id: "notice-1", ...attrs } },
+    ]);
+
+    expect(() => parseDocument(document, extensions)).toThrow();
   });
 });

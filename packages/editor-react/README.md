@@ -21,6 +21,13 @@ For forms import `FormKit`, `CMSForm` or the headless `useCMSForm` from `cms-edi
 
 `inspectorMode="popover"` supplies settings without a permanent sidebar; `inline` uses `inspectorRef`. Switching this prop preserves the document/history. The toolbar is absent unless `showToolbar` is enabled.
 
-See [the extension and custom form guide](./GUIDE.md) included in this package for complete examples and migration instructions.
+## Guides
+
+Each npm package includes these guides in its installed directory. The links open the source on GitHub.
+
+- [Build a custom block](https://github.com/affisto/cms-editor/blob/main/docs/extensions.md) (`GUIDE.md`)
+- [Customize the editor and form UI](https://github.com/affisto/cms-editor/blob/main/docs/customization.md) (`CUSTOMIZATION.md`)
+- [Block design principles](https://github.com/affisto/cms-editor/blob/main/docs/block-design.md) (`BLOCK_DESIGN.md`)
+- [Integrate the editor and form runtime](https://github.com/affisto/cms-editor/blob/main/docs/integration.md) (`INTEGRATION.md`)
 
 License: [MIT](./LICENSE).

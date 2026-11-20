@@ -24,6 +24,9 @@
     "src/style.css",
     "README.md",
     "GUIDE.md",
+    "CUSTOMIZATION.md",
+    "BLOCK_DESIGN.md",
+    "INTEGRATION.md",
     "LICENSE"
   ],
   "sideEffects": [

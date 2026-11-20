@@ -19,6 +19,13 @@ Root exports are DOM-free: schema-versioned JSON, validation, schema creation, d
 
 Install `cms-editor-form` and register its `FormKit` to use the supplied questions, submit button and response runtime. Data persistence, uploads and network endpoints belong to the consumer. `allowedBlocks` restricts insertion UI, not authorization. Native popovers require a modern browser. UI text currently defaults to Korean.
 
-See [the extension and custom form guide](./GUIDE.md) included in this package for complete examples and migration instructions.
+## Guides
+
+Each npm package includes these guides in its installed directory. The links open the source on GitHub.
+
+- [Build a custom block](https://github.com/affisto/cms-editor/blob/main/docs/extensions.md) (`GUIDE.md`)
+- [Customize the editor and form UI](https://github.com/affisto/cms-editor/blob/main/docs/customization.md) (`CUSTOMIZATION.md`)
+- [Block design principles](https://github.com/affisto/cms-editor/blob/main/docs/block-design.md) (`BLOCK_DESIGN.md`)
+- [Integrate the editor and form runtime](https://github.com/affisto/cms-editor/blob/main/docs/integration.md) (`INTEGRATION.md`)
 
 License: [MIT](./LICENSE).

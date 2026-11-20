@@ -1,10 +1,21 @@
 # 통합 가이드
 
-사용처에서 컴포넌트를 직접 만들거나 폼 플러그인을 교체하려면 [확장 제작 가이드](extensions.md)를 먼저 보세요. 폼 관련 API는 이제 `cms-editor-form` 패키지에 있습니다.
+서비스에 에디터를 연결하고 문서를 저장하거나 폼 응답을 받는 방법입니다. [디자인 커스터마이징](customization.md)과 [새 블록 만들기](extensions.md)를 참고하세요.
+
+| 엔트리 | 역할 |
+| --- | --- |
+| `cms-editor-core` | DOM 없이 문서 검증, 스키마 생성, 읽기용 HTML 출력 |
+| `cms-editor-core/browser` | 브라우저 에디터, 메뉴, 핸들, 편집 명령 |
+| `cms-editor-react` | `CMSEditor`, `CMSRenderer`, React 블록 컴포넌트 연결 |
+| `cms-editor-form` | DOM 없이 폼 정의, 질문과 템플릿 생성, 응답 검증 |
+| `cms-editor-form/browser` | 편집 UI가 연결된 `FormKit`, 응답 화면 `mountForm` |
+| `cms-editor-form/react` | 편집 UI가 연결된 `FormKit`, `CMSForm`, `useCMSForm` |
+
+질문과 제출 버튼을 쓰려면 `cms-editor-form`을 설치하고 `FormKit`을 등록하세요.
 
 ## 공통 코어와 브라우저 경계
 
-`cms-editor-core`는 DOM 없이 문서 검증, 응답 검증, HTML 생성을 수행합니다. `cms-editor-core/browser`는 브라우저 DOM이 있어야 실행할 수 있습니다. React 연결 계층에는 서비스별 네트워크 호출이나 저장소가 없습니다.
+`cms-editor-core`는 DOM 없이 문서 검증, 스키마 생성, HTML 출력을 수행합니다. `cms-editor-core/browser`는 브라우저 DOM이 있어야 실행할 수 있습니다. React 연결 계층에는 서비스별 네트워크 호출이나 저장소가 없습니다.
 
 ```ts
 import { createDocument, parseDocument, renderHTML } from "cms-editor-core";
@@ -105,6 +116,100 @@ React에서는 `cms-editor-form/react`에서 가져온 `<CMSForm document={saved
 
 서버는 클라이언트가 보낸 문서 정의를 믿지 말고 `documentId`로 승인된 문서를 읽은 뒤 `parseDocument`, `validateAnswers`, `createSubmission`을 적용하세요. 인증·권한·업로드 저장소·전송 재시도에 대한 서버 측 중복 방지는 사용하는 서비스의 책임입니다. 폼 필드 ID가 같으면 순서 변경 후에도 동일한 질문으로 취급합니다. 질문의 의미가 바뀌면 새 필드를 만들고, 발행된 문서 버전을 보관해 과거 응답의 의미를 유지하세요.
 
+### React에서 기본 폼 연결하기
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { CMSEditor } from "cms-editor-react";
+import { formTemplate } from "cms-editor-form";
+import { CMSForm, FormKit } from "cms-editor-form/react";
+import "cms-editor-core/style.css";
+import "cms-editor-form/style.css";
+
+const extensions = [FormKit];
+
+export function FormBuilder() {
+	const [document, setDocument] = useState(formTemplate);
+
+	return (
+		<>
+			<CMSEditor document={document} extensions={extensions} onChange={setDocument} />
+			<CMSForm
+				document={document}
+				extensions={extensions}
+				onSubmit={async (submission, signal) => {
+					const response = await fetch("/api/responses", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify(submission),
+						signal,
+					});
+					if (!response.ok) throw new Error("응답을 저장하지 못했습니다.");
+				}}
+			/>
+		</>
+	);
+}
+```
+
+`CMSForm`, `mountForm`, `useCMSForm`은 `extensions`를 생략하면 FormKit을 사용합니다. 다른 블록도 포함된 문서에는 전체 등록 목록을 전달하세요. `FormField`와 `SubmitButton`은 각 런타임 엔트리에서 개별로 가져와 필요한 편집 블록을 등록할 수 있습니다.
+
+### 앱의 컴포넌트로 응답 폼 만들기
+
+아래 폼은 단문 질문만 있는 문서를 받습니다. `onSubmit`에는 실제 저장 함수를 전달하세요. 입력 방식이 더 필요하면 질문의 `kind`에 맞는 컨트롤을 렌더링하세요.
+
+```tsx
+"use client";
+
+import { useId } from "react";
+import type { CMSDocument } from "cms-editor-core";
+import { collectFields, type Submission } from "cms-editor-form";
+import { useCMSForm } from "cms-editor-form/react";
+
+export function ShortAnswerForm({
+	document,
+	onSubmit,
+}: {
+	document: CMSDocument;
+	onSubmit: (value: Submission, signal: AbortSignal) => Promise<void>;
+}) {
+	const form = useCMSForm({ document, onSubmit });
+	const prefix = useId();
+	const disabled = form.status === "pending" || form.status === "success";
+
+	return (
+		<form noValidate onSubmit={form.submit}>
+			{collectFields(form.document).map(({ attrs }) => {
+				const key = String(attrs?.fieldId);
+				const id = `${prefix}-${key}`;
+				const error = form.errors[key];
+				return (
+					<div key={key}>
+						<label htmlFor={id}>{String(attrs?.label)}</label>
+						<input
+							id={id}
+							value={String(form.answers[key] ?? "")}
+							disabled={disabled}
+							aria-required={Boolean(attrs?.required)}
+							aria-invalid={Boolean(error)}
+							aria-describedby={`${id}-error`}
+							onChange={(event) => form.setAnswer(key, event.currentTarget.value)}
+						/>
+						<p id={`${id}-error`} role="alert">{error}</p>
+					</div>
+				);
+			})}
+			<button type="submit" disabled={disabled}>보내기</button>
+			<p role="status">{form.status === "success" ? "제출 완료" : form.error}</p>
+		</form>
+	);
+}
+```
+
+`useCMSForm`은 답변, 오류, 상태와 중복 제출 방지를 제공합니다. 문서 내용이 바뀌면 답변을 초기화하고 진행 중 요청을 취소합니다. `initialAnswers`는 처음 마운트하거나 문서를 교체할 때 사용합니다. 자체 질문 타입을 만든 경우 응답 수집과 검증도 앱에서 구현하세요. FormKit의 도우미는 FormKit의 `field` 노드를 처리합니다.
+
 ## 데이터 형식과 버전 정책
 
 ```ts
@@ -157,24 +262,23 @@ const callout: BlockExtension = {
 };
 ```
 
-에디터, `parseDocument`, `renderHTML`, 폼에 같은 `extensions: [FormKit, callout]`를 전달하세요. `group: block`과 블록 ID 속성은 코어가 부여합니다. `toDOM`은 SSR 호환을 위해 DOM 노드 대신 배열 형태의 DOMOutputSpec을 반환해야 합니다. 복잡한 편집 UI는 `nodeViews`로 ProseMirror NodeView를 전달하고, 서비스의 설정 UI에서 `updateBlock`을 사용합니다. `apps/vanilla/main.ts`가 실제 예제입니다.
+에디터, `parseDocument`, `renderHTML`, 폼에 같은 `extensions: [FormKit, callout]`를 전달하세요. `group: block`과 블록 ID 속성은 코어가 부여합니다. `toDOM`은 SSR 호환을 위해 DOM 노드 대신 배열 형태의 DOMOutputSpec을 반환해야 합니다. 복잡한 편집 UI는 `nodeViews`로 ProseMirror NodeView를 전달하고, 서비스의 설정 UI에서 `updateBlock`을 사용합니다. [바닐라 예제](../apps/vanilla/main.ts)에서 등록과 사용을 확인할 수 있습니다.
 
-## 테마와 라벨
+### 블록 확장 옵션
 
-```css
-.my-editor {
-  --color-accent: #2458c9;
-  --color-surface: #ffffff;
-  --color-ink: #242c3b;
-  --color-muted: #657187;
-  --color-rule: #dbe1ea;
-  --color-soft: #f5f7fa;
-  --color-tint: #edf2ff;
-  --font-body: system-ui, sans-serif;
-}
-```
+| 옵션 | 동작 |
+| --- | --- |
+| `name`, `label`, `spec` | 저장 타입, 기본 표시 이름, ProseMirror NodeSpec을 지정합니다. |
+| `validate(attrs)` | 지원하지 않는 속성값에 오류를 던집니다. |
+| `menu` | 메뉴 항목마다 `attrs`로 초기값을 지정합니다. `false`를 지정하면 슬래시 메뉴와 전체 추가 목록에서 숨깁니다. |
+| `uniqueAttributes` | 스키마에 정의한 속성에 별도 ID를 부여합니다. 생성과 복제 시 새 ID를 발급하고 이동과 편집에서는 유지합니다. |
+| `nodeView` | 브라우저에서 블록의 ProseMirror NodeView를 연결합니다. |
+| `inspectorHint` | 블록 설정 영역에 안내 문구를 표시합니다. |
+| `renderHTML` | 읽기용 HTML을 반환합니다. 생략하면 `spec.toDOM`을 사용합니다. |
 
-기본 UI는 한국어입니다. `labels` 옵션은 툴바의 add/undo/redo/bold/italic/strike/link 접근성 라벨 재정의용이며 전체 다국어 지원을 의미하지 않습니다. 입력 안내는 `placeholder`, 폼 완료 문구는 `successMessage`로 바꿀 수 있습니다. 문서 제목과 질문 문구는 사용자가 직접 작성합니다.
+## UI 라벨과 안내 문구
+
+기본 UI는 한국어입니다. `labels` 옵션으로 툴바의 add, undo, redo, bold, italic, strike, link 접근성 라벨을 지정하세요. 입력 안내는 `placeholder`, 폼 완료 문구는 `successMessage`로 설정합니다. 색상, 글꼴과 마크업을 바꾸려면 [디자인 커스터마이징](customization.md)을 참고하세요.
 
 ## 사이드 패널 없이 사용하기
 
@@ -215,3 +319,7 @@ const callout: BlockExtension = {
 툴바 없이 `/`로 블록을 추가하고 `Cmd/Ctrl+Z`로 실행 취소, `Cmd/Ctrl+Shift+Z`로 다시 실행합니다. `Cmd/Ctrl+B`·`I`로 굵게·기울임을 적용하고, 목록의 `Tab`·`Shift+Tab`으로 들여쓰기·내어쓰기를 합니다. `showToolbar`는 생성 시 옵션입니다.
 
 목록 본문에서 클릭 직후 Tab을 누를 때도 실제 브라우저 커서 위치를 기준으로 들여씁니다. 이전 항목이 없는 첫 항목에서는 들여쓰기하지 않고 본문 포커스를 유지합니다. 목록 밖의 Tab은 일반 포커스 이동을 유지합니다.
+
+## 이전 코드에서 FormKit으로 옮기기
+
+기존 문서의 `field`와 `submit` JSON은 FormKit으로 엽니다. `formTemplate`, `fieldBlock`, `collectFields`, `validateAnswers`, `createSubmission`, `Answers`, `Submission`은 `cms-editor-form`에서 가져오세요. `CMSForm`은 `cms-editor-form/react`에서, `mountForm`은 `cms-editor-form/browser`에서 가져옵니다. 편집기, 파서, 렌더러에 FormKit을 등록하고 `cms-editor-form/style.css`를 가져오세요.
