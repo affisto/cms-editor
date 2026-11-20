@@ -56,5 +56,14 @@
     "prosemirror",
     "blocks"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/affisto/cms-editor.git",
+    "directory": "packages/editor-core"
+  },
+  "bugs": {
+    "url": "https://github.com/affisto/cms-editor/issues"
+  },
+  "homepage": "https://github.com/affisto/cms-editor/tree/main/packages/editor-core#readme"
 }

@@ -51,5 +51,14 @@
     "react"
   ],
   "description": "React bindings and custom block components for cms-editor-core",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/affisto/cms-editor.git",
+    "directory": "packages/editor-react"
+  },
+  "bugs": {
+    "url": "https://github.com/affisto/cms-editor/issues"
+  },
+  "homepage": "https://github.com/affisto/cms-editor/tree/main/packages/editor-react#readme"
 }

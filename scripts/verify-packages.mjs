@@ -1,4 +1,10 @@
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +17,49 @@ function run(command, args, cwd) {
   return result.stdout;
 }
 mkdirSync(join(root, "artifacts"), { recursive: true });
+const privatePackages = new Set();
+for (const group of ["apps", "packages"]) {
+  for (const workspace of readdirSync(join(root, group), {
+    withFileTypes: true,
+  })) {
+    if (!workspace.isDirectory()) continue;
+    const manifest = JSON.parse(
+      readFileSync(join(root, group, workspace.name, "package.json"), "utf8"),
+    );
+    if (manifest.private) privatePackages.add(manifest.name);
+  }
+}
 const tarballs = ["core", "react", "form"].map((name) => {
+  const directory = `packages/editor-${name}`;
+  const manifest = JSON.parse(
+    readFileSync(join(root, directory, "package.json"), "utf8"),
+  );
+  if (
+    manifest.private ||
+    manifest.publishConfig?.access !== "public" ||
+    manifest.publishConfig?.registry !== "https://registry.npmjs.org/" ||
+    manifest.repository?.url !==
+      "git+https://github.com/affisto/cms-editor.git" ||
+    manifest.repository?.directory !== directory ||
+    !manifest.bugs?.url ||
+    !manifest.homepage ||
+    manifest.license !== "MIT"
+  ) {
+    throw new Error(`Invalid npm publishing metadata for ${manifest.name}`);
+  }
+  for (const dependencies of [
+    manifest.dependencies,
+    manifest.optionalDependencies,
+    manifest.peerDependencies,
+  ]) {
+    for (const dependency of Object.keys(dependencies ?? {})) {
+      if (privatePackages.has(dependency)) {
+        throw new Error(
+          `${manifest.name} depends on private workspace ${dependency}`,
+        );
+      }
+    }
+  }
   const result = JSON.parse(
     run(
       "npm",
@@ -25,7 +73,15 @@ const tarballs = ["core", "react", "form"].map((name) => {
       root,
     ),
   );
-  if (!result[0].files.some(file => file.path === "GUIDE.md")) throw new Error(`Missing consumer guide: ${name}`);
+  const packedFiles = new Set(result[0].files.map((file) => file.path));
+  const exportFiles = Object.values(manifest.exports).flatMap((entry) =>
+    typeof entry === "string" ? [entry] : Object.values(entry),
+  );
+  for (const path of ["README.md", "GUIDE.md", "LICENSE", ...exportFiles]) {
+    if (!packedFiles.has(path.replace(/^\.\//, ""))) {
+      throw new Error(`Missing ${path} in ${manifest.name}`);
+    }
+  }
   return resolve(root, "artifacts", result[0].filename);
 });
 const directory = mkdtempSync(join(tmpdir(), "cms-editor-consumer-"));

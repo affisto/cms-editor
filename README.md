@@ -4,7 +4,7 @@
 
 ## 실행
 
-Node.js 22.12 이상과 npm이 필요합니다. Node.js 22 LTS에서 검증했습니다.
+Node.js 22.14 이상과 npm 11.5.1을 사용합니다. `nvm use`로 CI와 같은 Node.js 22를 선택할 수 있습니다.
 
 ```sh
 npm ci
@@ -100,6 +100,8 @@ npm pack --workspace=cms-editor-form # 폼이 필요한 경우
 ```
 
 세 라이브러리는 조직 scope 없이 일반 npm 패키지 이름으로 배포합니다. 배포 대상은 라이브러리 tarball이며 스튜디오 앱과 로컬 설정은 포함하지 않습니다.
+
+버전 변경, GitHub Actions, npm Trusted Publishing 설정은 [npm 릴리스 가이드](docs/releasing.md)를 참고하세요.
 
 ## 첫 버전의 범위
 

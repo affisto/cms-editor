@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: Release packages
+    needs: validate
+    if: vars.NPM_RELEASE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PR_TOKEN || github.token }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Set up npm for trusted publishing
+        run: |
+          printf '%s\n' 'registry=https://registry.npmjs.org/' > "$HOME/.npmrc"
+          npm install --global npm@11.5.1
+      - run: npm ci
+      - name: Create release PR or publish
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        with:
+          github-token: ${{ secrets.RELEASE_PR_TOKEN || github.token }}
+          title: 'chore(release): version packages'
+          commit: 'chore(release): version packages'
+          version: npm run version:packages
+          publish: npm run release

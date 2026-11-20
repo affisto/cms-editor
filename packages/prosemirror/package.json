@@ -1,6 +1,7 @@
 {
   "name": "@repo/prosemirror",
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
