@@ -236,10 +236,11 @@ interface Submission {
 import { parseDocument, renderHTML } from "cms-editor-core";
 import { FormKit } from "cms-editor-form";
 const extensions = [FormKit];
-const html = renderHTML(parseDocument(savedJSON, extensions), { extensions, showTitle: true });
+const document = parseDocument(savedJSON, extensions);
+const html = renderHTML(document, { extensions, showTitle: true });
 ```
 
-이 함수는 Node.js에서도 동작하며 사용자 텍스트와 속성을 이스케이프합니다. `<CMSRenderer document={document} />`로 React에서 표시할 수도 있습니다. 폼 필드는 정적 출력에서 비활성화되고 제출 버튼은 숨겨집니다. 응답 가능한 화면은 `CMSForm`/`mountForm`을 사용하세요. 이미지와 링크에는 허용된 URL 형식만 적용합니다. 커스텀 확장은 서비스 개발자가 작성하는 신뢰된 코드이며 외부에서 제공된 실행 코드를 등록해서는 안 됩니다.
+이 함수는 Node.js에서도 동작하며 사용자 텍스트와 속성을 이스케이프합니다. `<CMSRenderer document={document} extensions={extensions} />`로 React에서 표시할 수도 있습니다. 폼 필드는 정적 출력에서 비활성화되고 제출 버튼은 숨겨집니다. 응답 가능한 화면은 `CMSForm`/`mountForm`을 사용하세요. 이미지와 링크에는 허용된 URL 형식만 적용합니다. 커스텀 확장은 서비스 개발자가 작성하는 신뢰된 코드이며 외부에서 제공된 실행 코드를 등록해서는 안 됩니다.
 
 여러 렌더러를 같은 페이지에 직접 출력할 때는 `idPrefix`를 서로 다르게 지정하세요. React 렌더러와 DOM 폼 마운트는 자동으로 고유 prefix를 부여합니다.
 
@@ -285,7 +286,15 @@ const callout: BlockExtension = {
 상단 편집 툴바는 기본적으로 표시하지 않습니다. 기존 고정 툴바가 필요한 통합에서는 생성 옵션 또는 React prop에 `showToolbar: true`를 지정할 수 있습니다. 별도 `inspectorElement`를 전달하지 않으면 블록 설정이 팝오버로 열립니다. 질문 제목·도움말·입력 안내·선택지·필수 여부·숫자 범위는 질문 블록 안에서 바로 수정합니다. 왼쪽 6점 핸들을 드래그해 순서를 바꾸고, 호버 또는 길게 누르기로 복제·삭제 아이콘 메뉴를 열 수 있습니다. 목록 항목 핸들의 메뉴는 해당 항목에만 적용됩니다. 제출 버튼은 문구를 직접 편집하고 정렬 아이콘으로 배치합니다. 이미지는 블록의 `설정` 버튼으로, 토글은 핸들 메뉴의 설정 아이콘으로 수정합니다.
 
 ```tsx
-<CMSEditor document={document} onChange={setDocument} inspectorMode="popover" />
+import { CMSEditor } from "cms-editor-react";
+import { FormKit } from "cms-editor-form/react";
+
+<CMSEditor
+  document={document}
+  extensions={[FormKit]}
+  onChange={setDocument}
+  inspectorMode="popover"
+/>
 ```
 
 외부 설정 패널을 연결할 때는 `inspectorElement`(React는 `inspectorRef`)와 `inspectorMode: 'inline'`을 사용합니다. 외부 요소만 전달한 경우 기본값은 `inline`입니다.
