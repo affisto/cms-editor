@@ -2,9 +2,17 @@
 
 문서, 노션식 작업 노트, 폼을 같은 블록으로 만드는 재사용 가능한 웹 편집기입니다. 비개발자는 블록을 고르고 내용을 작성하며, 개발자는 저장·업로드·제출 함수를 연결합니다.
 
+## 사용 예제 영상
+
+디자인 워크숍 신청 폼을 편집하고 미리보기에서 응답을 제출하는 예제입니다. 질문 제목을 바꾸고 숫자 질문을 추가한 뒤, 필수 입력 오류를 확인하고 `demo@example.com`으로 제출합니다.
+
+[![Blockroom의 디자인 워크숍 신청 폼 편집 및 제출 영상](docs/media/cms-editor-demo.gif)](docs/media/cms-editor-demo.mp4)
+
+[전체 영상 (MP4)](docs/media/cms-editor-demo.mp4)
+
 ## 실행
 
-Node.js 22.12 이상과 npm이 필요합니다. Node.js 22 LTS에서 검증했습니다.
+Node.js 22.14 이상과 npm 11.5.1을 사용합니다. `nvm use`로 CI와 같은 Node.js 22를 선택할 수 있습니다.
 
 ```sh
 npm ci
@@ -89,6 +97,8 @@ npm run build
 
 브라우저 테스트는 스튜디오(4310)와 Vanilla 예제(4173)를 실행합니다. 해당 포트에 다른 앱이 실행 중이지 않아야 합니다. 반응형 스크린샷과 실패 trace는 `test-results/`에 생성됩니다.
 
+사용 예제 영상을 다시 만들려면 Chromium과 `ffmpeg`를 설치하고 스튜디오를 실행한 상태에서 `node scripts/record-demo.mjs`를 실행하세요. 결과는 `docs/media/`에 저장됩니다.
+
 로컬 배포용 패키지:
 
 ```sh
@@ -100,6 +110,8 @@ npm pack --workspace=cms-editor-form # 폼이 필요한 경우
 ```
 
 세 라이브러리는 조직 scope 없이 일반 npm 패키지 이름으로 배포합니다. 배포 대상은 라이브러리 tarball이며 스튜디오 앱과 로컬 설정은 포함하지 않습니다.
+
+버전 변경, GitHub Actions, npm Trusted Publishing 설정은 [npm 릴리스 가이드](docs/releasing.md)를 참고하세요.
 
 ## 첫 버전의 범위
 
