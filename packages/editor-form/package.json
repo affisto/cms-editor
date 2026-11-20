@@ -1,6 +1,6 @@
 {
   "name": "cms-editor-form",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Optional form extensions, default UI and headless form state for CMS Editor",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -39,7 +39,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "cms-editor-core": "^0.1.0",
+    "cms-editor-core": "^0.1.1",
     "prosemirror-model": "^1.22.3",
     "prosemirror-state": "^1.4.3",
     "prosemirror-view": "^1.42.6",
