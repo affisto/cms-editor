@@ -12,8 +12,10 @@ import { DOMSerializer } from "prosemirror-model";
 import {
   createDocument,
   parseDocument as parseCoreDocument,
+  renderHTML,
   textBlock,
 } from "../packages/editor-core/src/index";
+import { NoticeCard } from "../apps/docs/app/examples/custom-blocks/notice-card";
 const disposers: (() => void)[] = [];
 function host() {
   const div = document.createElement("div");
@@ -74,6 +76,24 @@ describe("editor lifecycle and transactions", () => {
     expect(
       instance.getDocument().content.content![0].attrs!.options,
     ).not.toContain("Injected");
+  });
+  it("imports the notice card HTML produced by the read-only renderer", () => {
+    const extensions = [NoticeCard];
+    const title = 'Workshop "updates"';
+    const message = "Bring paper & pens";
+    const source = createDocument("Workshop", [
+      { type: NoticeCard.name, attrs: { id: "notice-1", title, message } },
+    ]);
+    const instance = editor(createDocument(), { extensions });
+
+    instance.importHTML(renderHTML(source, { extensions }));
+
+    const imported = instance.getDocument().content.content?.[0];
+    expect(imported).toMatchObject({
+      type: NoticeCard.name,
+      attrs: { title, message },
+    });
+    expect(imported?.attrs?.id).not.toBe("notice-1");
   });
   it("round-trips clipboard fields without reusing response IDs", () => {
     const one = editor(
