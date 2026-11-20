@@ -79,9 +79,16 @@ export function Composer({ initial }: { initial: CMSDocument }) {
 // 서버 렌더링 시 서버와 클라이언트가 동일한 초기 문서를 사용해야 합니다.
 ```
 
-React 외 환경에서는 `createEditor(element, options)`를 사용하고 화면이 사라질 때 `destroy()`를 호출합니다. 자세한 저장·업로드·제출 예제, 커스텀 블록, SSR, 문서 규격은 [통합 가이드](docs/integration.md)를 참고하세요.
+React 외 환경에서는 `createEditor(element, options)`를 사용하고 화면이 사라질 때 `destroy()`를 호출합니다. 폼은 `cms-editor-form/react`의 `FormKit`을 `extensions`에 등록하면 사용할 수 있습니다.
 
-폼은 `cms-editor-form/react`의 `FormKit`을 `extensions`에 등록하면 사용할 수 있습니다. 사용처의 React 블록, 질문 UI 교체, 직접 만드는 응답 폼은 [확장 제작 가이드](docs/extensions.md)를 참고하세요. 실행 예제: [커스텀 블록/폼](http://127.0.0.1:4310/examples/custom-blocks).
+## npm 패키지 가이드
+
+각 npm 패키지에도 가이드 네 개를 함께 배포합니다.
+
+- [디자인 커스터마이징](docs/customization.md) · `CUSTOMIZATION.md`
+- [새 블록 만들기](docs/extensions.md) · `GUIDE.md`
+- [블록 설계 원칙](docs/block-design.md) · `BLOCK_DESIGN.md`
+- [저장, 렌더링, 폼 통합](docs/integration.md) · `INTEGRATION.md`
 
 ## 검증 및 빌드
 

@@ -1,59 +1,12 @@
 "use client";
 import * as React from "react";
 import { CMSEditor, CMSRenderer, type BlockViewProps } from "cms-editor-react";
-import {
-  createDocument,
-  newId,
-  type BlockExtension,
-  type CMSDocument,
-} from "cms-editor-core";
+import { createDocument, newId, type CMSDocument } from "cms-editor-core";
 import { FormKit, useCMSForm } from "cms-editor-form/react";
 import { fieldBlock, collectFields } from "cms-editor-form";
 
-// This definition is application-owned. In production keep it in a shared,
-// DOM-free module so parsing/validation and rendering use it on the server too.
-const NoticeCard: BlockExtension = {
-  name: "notice_card",
-  label: "안내 카드",
-  spec: {
-    atom: true,
-    draggable: true,
-    attrs: {
-      title: { default: "참여 안내" },
-      message: { default: "궁금한 점을 알려주세요." },
-    },
-    toDOM: (node) => [
-      "aside",
-      {
-        "data-notice-card": "",
-        "data-title": node.attrs.title,
-        "data-message": node.attrs.message,
-      },
-      ["strong", node.attrs.title],
-      ["p", node.attrs.message],
-    ],
-    parseDOM: [
-      {
-        tag: "aside[data-notice-card]",
-        getAttrs: (dom) => ({
-          title: dom.getAttribute("data-title"),
-          message: dom.getAttribute("data-message"),
-        }),
-      },
-    ],
-  },
-  validate(attrs) {
-    if (
-      typeof attrs.title !== "string" ||
-      !attrs.title.trim() ||
-      typeof attrs.message !== "string"
-    )
-      throw new Error("안내 제목과 내용을 입력하세요.");
-  },
-  menu: [{ label: "안내 카드", icon: "i" }],
-  renderHTML: (node, { escapeHTML }) =>
-    `<aside class="consumer-notice"><strong>${escapeHTML(node.attrs?.title)}</strong><p>${escapeHTML(node.attrs?.message)}</p></aside>`,
-};
+import { NoticeCard } from "./notice-card";
+
 const extensions = [FormKit, NoticeCard];
 const Brand = React.createContext("서비스");
 const cardStyle: React.CSSProperties = {
@@ -65,26 +18,51 @@ const cardStyle: React.CSSProperties = {
 };
 function NoticeEditor({ attrs, updateAttributes }: BlockViewProps) {
   const brand = React.useContext(Brand);
-  const [title, setTitle] = React.useState(String(attrs.title));
-  React.useEffect(() => setTitle(String(attrs.title)), [attrs.title]);
+  const savedTitle = String(attrs.title);
+  const savedMessage = String(attrs.message);
+  const [draft, setDraft] = React.useState({
+    title: savedTitle,
+    message: savedMessage,
+  });
+  const composing = React.useRef(false);
+  React.useEffect(() => {
+    setDraft({ title: savedTitle, message: savedMessage });
+  }, [savedTitle, savedMessage]);
+
+  function edit(field: "title" | "message", value: string) {
+    setDraft((current) => ({ ...current, [field]: value }));
+    if (!composing.current) updateAttributes({ [field]: value });
+  }
+
   return (
     <aside style={cardStyle}>
       <small>{brand}의 커스텀 블록</small>
       <input
         aria-label="안내 카드 제목"
-        value={title}
-        onChange={(e) => {
-          setTitle(e.target.value);
-          updateAttributes({ title: e.target.value });
+        value={draft.title}
+        onChange={(event) => edit("title", event.currentTarget.value)}
+        onCompositionStart={() => {
+          composing.current = true;
+        }}
+        onCompositionEnd={(event) => {
+          composing.current = false;
+          edit("title", event.currentTarget.value);
         }}
         onBlur={() => {
-          if (!title.trim()) setTitle(String(attrs.title));
+          if (!draft.title.trim()) setDraft({ ...draft, title: savedTitle });
         }}
       />
       <textarea
         aria-label="안내 카드 내용"
-        value={String(attrs.message)}
-        onChange={(e) => updateAttributes({ message: e.target.value })}
+        value={draft.message}
+        onChange={(event) => edit("message", event.currentTarget.value)}
+        onCompositionStart={() => {
+          composing.current = true;
+        }}
+        onCompositionEnd={(event) => {
+          composing.current = false;
+          edit("message", event.currentTarget.value);
+        }}
       />
     </aside>
   );
@@ -132,7 +110,7 @@ function MyForm({ document }: { document: CMSDocument }) {
       {notices.length > 0 && (
         <CMSRenderer
           document={{ ...document, content: { type: "doc", content: notices } }}
-          extensions={[NoticeCard]}
+          extensions={extensions}
         />
       )}
       {collectFields(form.document).map((field) => {
@@ -215,7 +193,10 @@ export default function CustomBlocksExample() {
               document={doc}
               extensions={extensions}
               components={components}
-              onChange={setDoc}
+              onChange={(next) => {
+                setError("");
+                setDoc(next);
+              }}
               onError={(e) => setError(e.message)}
             />
           ))}

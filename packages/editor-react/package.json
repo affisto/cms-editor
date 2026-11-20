@@ -1,6 +1,6 @@
 {
   "name": "cms-editor-react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -16,6 +16,9 @@
     "dist",
     "README.md",
     "GUIDE.md",
+    "CUSTOMIZATION.md",
+    "BLOCK_DESIGN.md",
+    "INTEGRATION.md",
     "LICENSE"
   ],
   "sideEffects": false,
@@ -24,7 +27,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "cms-editor-core": "^0.1.1",
+    "cms-editor-core": "^0.1.2",
     "prosemirror-model": "^1.22.3",
     "prosemirror-state": "^1.4.3",
     "prosemirror-view": "^1.42.6",

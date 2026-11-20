@@ -10,7 +10,15 @@ test("consumer React blocks retain context, edit attributes, undo and submit a c
   await expect(content.getByText("우리 서비스의 커스텀 블록")).toBeVisible();
   await expect(content.getByText("우리 서비스의 질문 컴포넌트")).toHaveCount(2);
   const title = page.getByLabel("안내 카드 제목");
+  await title.fill("");
+  await expect(title).toHaveValue("");
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText(
+    "안내 제목과 내용을 입력하세요.",
+  );
+  await title.press("Tab");
+  await expect(title).toHaveValue("참여 안내");
   await title.fill("변경한 안내");
+  await expect(page.getByRole("main").getByRole("alert")).toBeEmpty();
   await title.press("ArrowLeft");
   await page.keyboard.insertText("!");
   await expect(title).toHaveValue("변경한 안!내");

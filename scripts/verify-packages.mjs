@@ -1,4 +1,5 @@
 import {
+  existsSync,
   mkdtempSync,
   mkdirSync,
   readFileSync,
@@ -9,7 +10,15 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { readPackageGuides } from "./sync-package-guides.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
+const guideFiles = [
+  "GUIDE.md",
+  "CUSTOMIZATION.md",
+  "BLOCK_DESIGN.md",
+  "INTEGRATION.md",
+];
+const expectedGuides = new Map(readPackageGuides());
 function run(command, args, cwd) {
   const result = spawnSync(command, args, { cwd, encoding: "utf8" });
   if (result.status !== 0)
@@ -77,7 +86,7 @@ const tarballs = ["core", "react", "form"].map((name) => {
   const exportFiles = Object.values(manifest.exports).flatMap((entry) =>
     typeof entry === "string" ? [entry] : Object.values(entry),
   );
-  for (const path of ["README.md", "GUIDE.md", "LICENSE", ...exportFiles]) {
+  for (const path of ["README.md", "LICENSE", ...guideFiles, ...exportFiles]) {
     if (!packedFiles.has(path.replace(/^\.\//, ""))) {
       throw new Error(`Missing ${path} in ${manifest.name}`);
     }
@@ -97,6 +106,31 @@ run(
   "npm",
   ["install", ...tarballs, "react@18.2.0", "react-dom@18.2.0"],
   directory,
+);
+for (const name of ["core", "react", "form"]) {
+  const packageDir = join(directory, "node_modules", `cms-editor-${name}`);
+  for (const filename of ["README.md", ...guideFiles]) {
+    const content = readFileSync(join(packageDir, filename), "utf8");
+    const expected =
+      filename === "README.md"
+        ? readFileSync(join(root, `packages/editor-${name}`, filename), "utf8")
+        : expectedGuides.get(filename);
+    if (content !== expected) {
+      throw new Error(`Unexpected ${filename} in installed cms-editor-${name}`);
+    }
+    for (const [, link] of content.matchAll(/\[[^\]\n]+\]\(([^)\s]+)\)/g)) {
+      if (/^[a-z][a-z0-9+.-]*:/i.test(link) || link.startsWith("#")) continue;
+      const target = decodeURIComponent(link.split("#")[0]);
+      if (!existsSync(join(packageDir, target))) {
+        throw new Error(
+          `Broken link in cms-editor-${name}/${filename}: ${link}`,
+        );
+      }
+    }
+  }
+}
+console.log(
+  "PASS: all four guides and README match their sources and local links resolve",
 );
 writeFileSync(
   join(directory, "smoke.mjs"),

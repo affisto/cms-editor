@@ -23,6 +23,13 @@ The root entry exports `FormField`, `SubmitButton`, `FormKit`, `fieldBlock`, `fo
 
 Custom field types require consumer-owned answer validation/runtime; these helpers handle the supplied `field` schema. Upload/storage/submission endpoints remain consumer-owned. `extensions` and component maps are mount-time configuration. The built-in `CMSForm` still recreates its DOM when `document` identity changes; `useCMSForm` preserves answers for equivalent document content.
 
-See [the extension and custom form guide](./GUIDE.md) included in this package for complete examples and migration instructions.
+## Guides
+
+Each npm package includes these guides in its installed directory. The links open the source on GitHub.
+
+- [Build a custom block](https://github.com/affisto/cms-editor/blob/main/docs/extensions.md) (`GUIDE.md`)
+- [Customize the editor and form UI](https://github.com/affisto/cms-editor/blob/main/docs/customization.md) (`CUSTOMIZATION.md`)
+- [Block design principles](https://github.com/affisto/cms-editor/blob/main/docs/block-design.md) (`BLOCK_DESIGN.md`)
+- [Integrate the editor and form runtime](https://github.com/affisto/cms-editor/blob/main/docs/integration.md) (`INTEGRATION.md`)
 
 License: [MIT](./LICENSE).
