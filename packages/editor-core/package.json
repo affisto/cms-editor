@@ -1,6 +1,6 @@
 {
   "name": "cms-editor-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Framework-independent block editor with extensible document schema and HTML rendering",
   "type": "module",
   "main": "./dist/index.cjs",
