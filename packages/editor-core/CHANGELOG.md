@@ -1,5 +1,11 @@
 # cms-editor-core
 
+## 0.1.2
+
+### Patch Changes
+
+- e178acf: 디자인 커스터마이징, 새 블록 제작, 블록 설계 원칙, 서비스 통합 가이드를 npm 패키지에 포함합니다.
+
 ## 0.1.1
 
 ### Patch Changes
